@@ -41,7 +41,7 @@ Worker.prototype.toContainer = function toContainer() {
     // Setup root element and inner page height.
     var root = this.prop.container;
     var pxPageHeight = this.prop.pageSize.inner.px.height;
-    var vMargins = toPx(this.opt.margin[0] + this.opt.margin[2], this.prop.pageSize.k) / 2
+    var vMargins = toPx(this.opt.margin[0] + this.opt.margin[2], this.prop.pageSize.k)
 
     // Check all requested modes.
     var modeSrc = [].concat(this.opt.pagebreak.mode);
