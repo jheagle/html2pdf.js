@@ -1,5 +1,5 @@
 import Worker from '../worker.js';
-import { objType, createElement } from '../utils.js';
+import { toPx, createElement } from '../utils.js';
 
 /* Pagebreak plugin:
 
@@ -41,6 +41,7 @@ Worker.prototype.toContainer = function toContainer() {
     // Setup root element and inner page height.
     var root = this.prop.container;
     var pxPageHeight = this.prop.pageSize.inner.px.height;
+    var vMargins = toPx(this.opt.margin[0] + this.opt.margin[2], this.prop.pageSize.k) / 2
 
     // Check all requested modes.
     var modeSrc = [].concat(this.opt.pagebreak.mode);
@@ -114,20 +115,26 @@ Worker.prototype.toContainer = function toContainer() {
 
       // Before: Create a padding div to push the element to the next page.
       if (rules.before) {
-        var pad = createElement('div', {style: {
-          display: 'block',
-          height: pxPageHeight - (clientRect.top % pxPageHeight) + 'px'
-        }});
-        el.parentNode.insertBefore(pad, el);
+        var remainingFiller = clientRect.top % pxPageHeight
+        if (remainingFiller >= vMargins) {
+          var pad = createElement('div', {style: {
+            display: 'block',
+            height: pxPageHeight - remainingFiller + 'px'
+          }});
+          el.parentNode.insertBefore(pad, el);
+        }
       }
 
       // After: Create a padding div to fill the remaining page.
       if (rules.after) {
-        var pad = createElement('div', {style: {
-          display: 'block',
-          height: pxPageHeight - (clientRect.bottom % pxPageHeight) + 'px'
-        }});
-        el.parentNode.insertBefore(pad, el.nextSibling);
+        var remainingFiller = clientRect.bottom % pxPageHeight
+        if (remainingFiller >= vMargins) {
+          var pad = createElement('div', {style: {
+            display: 'block',
+            height: pxPageHeight - remainingFiller + 'px'
+          }});
+          el.parentNode.insertBefore(pad, el.nextSibling);
+        }
       }
     });
   });

@@ -1,6 +1,6 @@
 /**
  * html2pdf.js v0.9.1
- * Copyright (c) 2018 Erik Koopmans
+ * Copyright (c) 2019 Erik Koopmans
  * Released under the MIT License.
  */
 (function (global, factory) {
@@ -8558,7 +8558,7 @@ var unitConvert = function unitConvert(obj, k) {
 
 // Convert units to px using the conversion value 'k' from jsPDF.
 var toPx = function toPx(val, k) {
-  return Math.floor(val * k / 72 * 96);
+  return Math.ceil(val * k / 72 * 96);
 };
 
 /* ----- CONSTRUCTOR ----- */
@@ -8761,7 +8761,7 @@ Worker.prototype.toPdf = function toPdf() {
 
     for (var page = 0; page < nPages; page++) {
       // Trim the final page to reduce file size.
-      if (page === nPages - 1) {
+      if (page === nPages - 1 && pxFullHeight % pxPageHeight !== 0) {
         pageCanvas.height = pxFullHeight % pxPageHeight;
         pageHeight = pageCanvas.height * this.prop.pageSize.inner.width / pageCanvas.width;
       }
@@ -9185,6 +9185,7 @@ Worker.prototype.toContainer = function toContainer() {
     // Setup root element and inner page height.
     var root = this.prop.container;
     var pxPageHeight = this.prop.pageSize.inner.px.height;
+    var vMargins = toPx(this.opt.margin[0] + this.opt.margin[2], this.prop.pageSize.k) / 2;
 
     // Check all requested modes.
     var modeSrc = [].concat(this.opt.pagebreak.mode);
@@ -9257,20 +9258,26 @@ Worker.prototype.toContainer = function toContainer() {
 
       // Before: Create a padding div to push the element to the next page.
       if (rules.before) {
-        var pad = createElement('div', { style: {
-            display: 'block',
-            height: pxPageHeight - clientRect.top % pxPageHeight + 'px'
-          } });
-        el.parentNode.insertBefore(pad, el);
+        var remainingFiller = clientRect.top % pxPageHeight;
+        if (remainingFiller >= vMargins) {
+          var pad = createElement('div', { style: {
+              display: 'block',
+              height: pxPageHeight - remainingFiller + 'px'
+            } });
+          el.parentNode.insertBefore(pad, el);
+        }
       }
 
       // After: Create a padding div to fill the remaining page.
       if (rules.after) {
-        var pad = createElement('div', { style: {
-            display: 'block',
-            height: pxPageHeight - clientRect.bottom % pxPageHeight + 'px'
-          } });
-        el.parentNode.insertBefore(pad, el.nextSibling);
+        var remainingFiller = clientRect.bottom % pxPageHeight;
+        if (remainingFiller >= vMargins) {
+          var pad = createElement('div', { style: {
+              display: 'block',
+              height: pxPageHeight - remainingFiller + 'px'
+            } });
+          el.parentNode.insertBefore(pad, el.nextSibling);
+        }
       }
     });
   });
